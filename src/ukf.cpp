@@ -288,7 +288,18 @@ void UKF::UpdateLidar(MeasurementPackage meas_package) {
 
   // Step6": calculate NIS
   double epsilon = zd.transpose() * S.inverse() * zd;
-  cout << "Lidar NIS: " << epsilon << endl;
+  static double epsilon_sum = 0;
+  epsilon_sum += epsilon;
+  static int total = 0, over_cnt = 0;
+  total++;
+  over_cnt += epsilon > 5.991 ? 1 : 0;
+  cout << "*************************** LIDAR " << total << " ****************************" << endl;
+  cout << "Lidar NIS Cur: " << epsilon << endl;
+  cout << "Lidar NIS Sum: " << epsilon_sum << endl;
+  cout << "Lidar NIS Avg: " << epsilon_sum / total << endl;
+  cout << "Lidar Data Total: " << total << endl;
+  cout << "Lidar Data Over Threshold: " << over_cnt << endl;
+  cout << "Lidar Consistency Rate: " << 100 - (double)(over_cnt) / (double)(total) << "%" << endl;
 }
 
 /**
@@ -379,5 +390,16 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
 
   // Step6': calculate NIS
   double epsilon = zd.transpose() * S.inverse() * zd;
-  cout << "Radar NIS: " << epsilon << endl;
+  static double epsilon_sum = 0;
+  epsilon_sum += epsilon;
+  static int total = 0, over_cnt = 0;
+  total++;
+  over_cnt += epsilon > 7.815 ? 1 : 0;
+  cout << "*************************** RADAR " << total << " ****************************" << endl;
+  cout << "Radar NIS Cur: " << epsilon << endl;
+  cout << "Radar NIS Sum: " << epsilon_sum << endl;
+  cout << "Radar NIS Avg: " << epsilon_sum / total << endl;
+  cout << "Radar Data Total: " << total << endl;
+  cout << "Radar Data Over Threshold: " << over_cnt << endl;
+  cout << "Radar Consistency Rate: " << 100 - (double)(over_cnt) / (double)(total) << "%" << endl;
 }
