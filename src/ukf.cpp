@@ -25,10 +25,10 @@ UKF::UKF() {
   P_ = MatrixXd(5, 5);
 
   // Process noise standard deviation longitudinal acceleration in m/s^2
-  std_a_ = 30;
+  std_a_ = 2;
 
   // Process noise standard deviation yaw acceleration in rad/s^2
-  std_yawdd_ = 30;
+  std_yawdd_ = 0.3;
   
   //DO NOT MODIFY measurement noise values below these are provided by the sensor manufacturer.
   // Laser measurement noise standard deviation position1 in m
@@ -244,10 +244,7 @@ void UKF::UpdateLidar(MeasurementPackage meas_package) {
 
   // 4.2. calculate mean predicted measurement
   VectorXd z_pred = VectorXd(n_z);
-  z_pred.fill(0.0);
-  for (auto i = 0; i != 2 * n_aug_ + 1; i++) {
-    z_pred += weights_(i) * Zsig.col(i);
-  }
+  z_pred = Zsig * weights_;
 
   // 4.3. calculate innovation covariance matrix S
   MatrixXd S = MatrixXd(n_z, n_z);
@@ -285,12 +282,13 @@ void UKF::UpdateLidar(MeasurementPackage meas_package) {
   // 5.3. update state mean
   VectorXd zd = meas_package.raw_measurements_ - z_pred;
   x_ = x_ + K * zd;
+
   // 5.4. update covariance matrix
   P_ = P_ - K * S * K.transpose();
 
-  // Step6": consistency checking
+  // Step6": calculate NIS
   double epsilon = zd.transpose() * S.inverse() * zd;
-  cout << "Lidar consistency: " << epsilon << endl;
+  cout << "Lidar NIS: " << epsilon << endl;
 }
 
 /**
@@ -328,10 +326,7 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
 
   // 4.2. calculate mean predicted measurement
   VectorXd z_pred = VectorXd(n_z);
-  z_pred.fill(0.0);
-  for (auto i = 0; i != 2 * n_aug_ + 1; i++) {
-    z_pred += weights_(i) * Zsig.col(i);
-  }
+  z_pred = Zsig * weights_;
 
   // 4.3. calculate innovation covariance matrix S
   MatrixXd S = MatrixXd(n_z, n_z);
@@ -378,10 +373,11 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
   while (zd(1) >  M_PI) zd(1) -= 2. * M_PI;
   while (zd(1) < -M_PI) zd(1) += 2. * M_PI;
   x_ = x_ + K * zd;
+
   // 5.4. update covariance matrix
   P_ = P_ - K * S * K.transpose();
 
-  // Step6': consistency checking
+  // Step6': calculate NIS
   double epsilon = zd.transpose() * S.inverse() * zd;
-  cout << "Radar consistency: " << epsilon << endl;
+  cout << "Radar NIS: " << epsilon << endl;
 }
