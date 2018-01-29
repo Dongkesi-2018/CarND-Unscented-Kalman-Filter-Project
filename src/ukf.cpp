@@ -54,6 +54,7 @@ UKF::UKF() {
 
   Hint: one or more values initialized above might be wildly off...
   */
+  is_initialized_ = false;
   n_x_ = 5;
   n_aug_ = 7;
   lambda_ = 3 - n_aug_;
@@ -285,7 +286,7 @@ void UKF::UpdateLidar(MeasurementPackage meas_package) {
   VectorXd zd = meas_package.raw_measurements_ - z_pred;
   x_ = x_ + K * zd;
   // 5.4. update covariance matrix
-  P_ = P_ + K * S * K.transpose();
+  P_ = P_ - K * S * K.transpose();
 
   // Step6": consistency checking
   double epsilon = zd.transpose() * S.inverse() * zd;
@@ -378,7 +379,7 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
   while (zd(1) < -M_PI) zd(1) += 2. * M_PI;
   x_ = x_ + K * zd;
   // 5.4. update covariance matrix
-  P_ = P_ + K * S * K.transpose();
+  P_ = P_ - K * S * K.transpose();
 
   // Step6': consistency checking
   double epsilon = zd.transpose() * S.inverse() * zd;
